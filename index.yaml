@@ -3,6 +3,16 @@ entries:
   onechart:
   - apiVersion: v2
     appVersion: 0.0.1
+    created: "2026-09-15T17:55:29.317613312+06:00"
+    description: A Helm chart for Kubernetes Application Deployment
+    digest: e8c82fd22eb78b33b8745cf792e745792355c12d993b4a14847c2ddc46f1357d
+    name: onechart
+    type: application
+    urls:
+    - onechart-0.3.8.tgz
+    version: 0.3.8
+  - apiVersion: v2
+    appVersion: 0.0.1
     created: "2026-08-19T04:51:10.972246703+06:00"
     description: A Helm chart for Kubernetes Application Deployment
     digest: 5e627a92383b9abe4547ef8e618132f60712a1707fcc5f7b35199b79ed0a8f32

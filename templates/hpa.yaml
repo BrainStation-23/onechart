@@ -1,0 +1,56 @@
+{{- if .Values.autoscaling.enabled }}
+{{- if not (has .Values.kind (list "Deployment" "StatefulSet")) }}
+{{- fail "autoscaling supports only kind Deployment or StatefulSet" }}
+{{- end }}
+{{- $minReplicas := .Values.autoscaling.minReplicas | default .Values.replicaCount }}
+{{- if gt (int $minReplicas) (int .Values.autoscaling.maxReplicas) }}
+{{- fail "autoscaling.maxReplicas must be greater than or equal to autoscaling.minReplicas" }}
+{{- end }}
+{{- if not (or .Values.autoscaling.targetCPUUtil .Values.autoscaling.targetMemoryUtil) }}
+{{- fail "autoscaling requires at least one CPU or memory utilization target" }}
+{{- end }}
+{{- $requests := .Values.resources.requests | default dict }}
+{{- if and .Values.autoscaling.targetCPUUtil (not $requests.cpu) }}
+{{- fail "CPU autoscaling requires resources.requests.cpu" }}
+{{- end }}
+{{- if and .Values.autoscaling.targetMemoryUtil (not $requests.memory) }}
+{{- fail "memory autoscaling requires resources.requests.memory" }}
+{{- end }}
+{{- $servicePrefix := .Values.nameOverride | default .Release.Name }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ $servicePrefix }}-hpa
+  labels:
+    app: {{ $servicePrefix }}-app
+    onechart.kubernetes.io/name: {{ $servicePrefix }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: {{ .Values.kind }}
+    name: {{ $servicePrefix }}-{{ .Values.kind | lower }}
+  minReplicas: {{ $minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.autoscaling.targetCPUUtil }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetCPUUtil }}
+    {{- end }}
+    {{- if .Values.autoscaling.targetMemoryUtil }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetMemoryUtil }}
+    {{- end }}
+  {{- with .Values.autoscaling.behavior }}
+  behavior:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

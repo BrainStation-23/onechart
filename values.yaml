@@ -1,6 +1,17 @@
 nameOverride: ""
 
+# Fixed replicas when autoscaling is disabled; default minimum when enabled.
 replicaCount: 1
+
+autoscaling:
+  enabled: false
+  maxReplicas: 5
+  # Utilization is a percentage of resources.requests, not limits.
+  targetCPUUtil: 80
+  # Set a target to null to disable that metric; at least one is required.
+  targetMemoryUtil: null
+  # Optional autoscaling/v2 scaleUp/scaleDown behavior.
+  behavior: {}
 
 kind: Deployment
 

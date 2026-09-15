@@ -6,6 +6,7 @@ A Helm chart for Kubernetes Application Deployment.
 
 - Kubernetes 1.16+
 - Helm 3+
+- When autoscaling is enabled: Kubernetes 1.23+ and a working Metrics Server
 
 ## Installation
 
@@ -66,6 +67,49 @@ The following table lists the configurable parameters of the `onechart` chart an
 | `container.annotations`          | Annotations for the container                   | `{}`                           |
 | `container.securityContext`      | Security context for the container              | `{}`                           |
 | `initContainers`                 | Init containers configuration                   | See `values.yaml`              |
+
+### Horizontal Pod Autoscaling
+
+Enable HPA per service in its Helm values (see `examples/values-hpa.yaml`):
+
+```yaml
+autoscaling:
+  enabled: true
+  maxReplicas: 6
+  targetCPUUtil: 80
+```
+
+Autoscaling defaults to disabled. When enabled, the chart creates an
+`autoscaling/v2` HPA targeting the release's Deployment or StatefulSet, including
+`nameOverride`. Jobs do not support autoscaling. The workload omits
+`spec.replicas` so Helm upgrades do not reset HPA's replica count. `replicaCount`
+becomes the HPA minimum unless `autoscaling.minReplicas` explicitly overrides it.
+
+| Parameter | Description | Default |
+| --- | --- | --- |
+| `autoscaling.enabled` | Create an HPA | `false` |
+| `autoscaling.minReplicas` | Optional minimum override; otherwise uses `replicaCount` | `null` |
+| `autoscaling.maxReplicas` | Maximum pods (at least minReplicas) | `5` |
+| `autoscaling.targetCPUUtil` | CPU target as a percentage of requested CPU; null disables | `80` |
+| `autoscaling.targetMemoryUtil` | Memory target as a percentage of requested memory; null disables | `null` |
+| `autoscaling.behavior` | Native autoscaling/v2 scaleUp/scaleDown behavior | `{}` |
+
+At least one target must be enabled. Set matching `resources.requests.cpu` and/or
+`resources.requests.memory` for the selected metrics. Any injected sidecars must
+also have matching resource requests. For example, 80% with a CPU request of
+500m means a target average of 400m per pod. When both metrics are enabled,
+Kubernetes uses the larger recommended replica count.
+
+Read-only checks after deploying through your usual pipeline:
+
+```sh
+kubectl get hpa -n <namespace>
+kubectl describe hpa <service-name>-hpa -n <namespace>
+kubectl top pods -n <namespace>
+```
+
+See the [Kubernetes HPA documentation](https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/)
+for metric calculation and scaling behavior.
 
 ### Existing Kubernetes Secrets
 

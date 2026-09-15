@@ -9,7 +9,9 @@ metadata:
     app: {{ $servicePrefix }}-app
     onechart.kubernetes.io/name: {{ $servicePrefix }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       app: {{ $servicePrefix }}-app

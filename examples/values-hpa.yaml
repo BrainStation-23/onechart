@@ -1,0 +1,9 @@
+# Merge this with your service's existing values.
+autoscaling:
+  enabled: true
+  maxReplicas: 6
+  targetCPUUtil: 80
+  targetMemoryUtil: null
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
