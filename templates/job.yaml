@@ -29,6 +29,9 @@ spec:
       {{- toYaml .Values.podSpec.annotations | nindent 8 }}
       {{- end }}
     spec:
+      {{- if .Values.serviceAccount.name }}
+      serviceAccountName: {{ include "springboot-app-chart.serviceAccountName" . }}
+      {{- end }}
       restartPolicy: {{ .Values.job.restartPolicy | default "OnFailure" }}
       {{- if .Values.hostAliases }}
       hostAliases:

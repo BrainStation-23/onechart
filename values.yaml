@@ -79,6 +79,11 @@ resources:
 
 volumes: []
 
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
 podDisruptionBudget:
   enabled: false
   minAvailable: 1

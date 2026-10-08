@@ -28,6 +28,9 @@ spec:
       {{- toYaml .Values.podSpec.annotations | nindent 8 }}
       {{- end }}
     spec:
+      {{- if .Values.serviceAccount.name }}
+      serviceAccountName: {{ include "springboot-app-chart.serviceAccountName" . }}
+      {{- end }}
       {{- if .Values.hostAliases }}
       hostAliases:
         {{- toYaml .Values.hostAliases | nindent 8 }}
